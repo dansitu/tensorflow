@@ -514,8 +514,8 @@ class AudioProcessor(object):
       return original_data, original_labels
 
     # Tune these
-    frequency_masking_para = 20
-    time_masking_para = 8
+    frequency_masking_para = 27 # Same used in SpecAugment paper
+    time_masking_para = 10 # Up to 1/4 of the total 
 
     output_data = []
     output_labels = []
