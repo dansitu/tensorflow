@@ -215,9 +215,9 @@ def main(_):
         learning_rate_value = learning_rates_list[i]
         break
     # Pull the audio samples we'll use for training.
-    train_fingerprints, train_ground_truth = audio_processor.get_data(
+    train_fingerprints, train_ground_truth = audio_processor.get_augmented_data(
         FLAGS.batch_size, 0, model_settings, FLAGS.background_frequency,
-        FLAGS.background_volume, time_shift_samples, 'training', sess)
+        FLAGS.background_volume, time_shift_samples, FLAGS.spec_augment_variants,'training', sess)
     # Run the graph with this batch of training data.
     train_summary, train_accuracy, cross_entropy_value, _, _ = sess.run(
         [
@@ -481,6 +481,12 @@ if __name__ == '__main__':
       type=verbosity_arg,
       default=tf.compat.v1.logging.INFO,
       help='Log verbosity. Can be "INFO", "DEBUG", "ERROR", "FATAL", or "WARN"')
+  parser.add_argument(
+      '--spec_augment_variants',
+      type=int,
+      default=0,
+      help='Use SpecAugment to add spec_augment_variants variants of each sample to each training batch.')
+
 
   FLAGS, unparsed = parser.parse_known_args()
   tf.compat.v1.app.run(main=main, argv=[sys.argv[0]] + unparsed)
