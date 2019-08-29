@@ -217,7 +217,8 @@ def main(_):
     # Pull the audio samples we'll use for training.
     train_fingerprints, train_ground_truth = audio_processor.get_augmented_data(
         FLAGS.batch_size, 0, model_settings, FLAGS.background_frequency,
-        FLAGS.background_volume, time_shift_samples, FLAGS.spec_augment_variants,'training', sess)
+        FLAGS.background_volume, time_shift_samples, FLAGS.spec_augment_variants,
+        FLAGS.mask_frequencies_max, FLAGS.mask_times_max, 'training', sess)
     # Run the graph with this batch of training data.
     train_summary, train_accuracy, cross_entropy_value, _, _ = sess.run(
         [
@@ -486,6 +487,16 @@ if __name__ == '__main__':
       type=int,
       default=0,
       help='Use SpecAugment to add spec_augment_variants variants of each sample to each training batch.')
+  parser.add_argument(
+      '--mask_frequencies_max',
+      type=int,
+      default=27, # SpecAugment paper used 27
+      help='If using SpecAugment, mask a random number of frequency buckets up to this number.')
+  parser.add_argument(
+      '--mask_times_max',
+      type=int,
+      default=10, # Up to 1/4 of the total
+      help='If using SpecAugment, mask a random number of time buckets up to this number.')
 
 
   FLAGS, unparsed = parser.parse_known_args()

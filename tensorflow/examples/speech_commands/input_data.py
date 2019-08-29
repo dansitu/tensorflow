@@ -505,17 +505,13 @@ class AudioProcessor(object):
     return len(self.data_index[mode])
 
   def get_augmented_data(self, how_many, offset, model_settings, background_frequency,
-               background_volume_range, time_shift, spec_augment_variants, mode, sess):
+               background_volume_range, time_shift, spec_augment_variants, mask_frequencies_max, mask_times_max, mode, sess):
     """Get samples and apply specaugment"""
     original_data, original_labels = self.get_data(how_many, offset, model_settings, background_frequency,
                background_volume_range, time_shift, mode, sess)
 
     if spec_augment_variants == 0:
       return original_data, original_labels
-
-    # Tune these
-    frequency_masking_para = 27 # Same used in SpecAugment paper
-    time_masking_para = 10 # Up to 1/4 of the total 
 
     output_data = []
     output_labels = []
@@ -534,14 +530,14 @@ class AudioProcessor(object):
 
         # Frequency masking
         for i in range(frequency_mask_num):
-            f = np.random.uniform(low=0.0, high=frequency_masking_para)
+            f = np.random.uniform(low=0.0, high=mask_frequencies_max)
             f = int(f)
             f0 = random.randint(0, v - f)
             original_shape[f0:f0 + f, :] = 0
 
         # Time masking
         for i in range(time_mask_num):
-            t = np.random.uniform(low=0.0, high=time_masking_para)
+            t = np.random.uniform(low=0.0, high=mask_times_max)
             t = int(t)
             t0 = random.randint(0, tau - t)
             original_shape[:, t0:t0 + t] = 0
@@ -654,7 +650,7 @@ class AudioProcessor(object):
       summary, data_tensor = sess.run(
           [self.merged_summaries_, self.output_], feed_dict=input_dict)
       self.summary_writer_.add_summary(summary)
-      #print(data_tensor.shape)
+      
       data[i - offset, :] = data_tensor.flatten()
       label_index = self.word_to_index[sample['label']]
       labels[i - offset] = label_index
